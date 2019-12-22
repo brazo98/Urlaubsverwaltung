@@ -1,0 +1,551 @@
+
+-----------
+#pragma once
+#include <vector>
+#include <string>
+#include "rlutil.h"
+using namespace std;
+
+class Urlaub {
+private:
+	int id;
+	unsigned int verbrauchteUrlaubstage;
+
+public:
+	
+	Urlaub(int id, int verbrauchteUrlaub);
+	int GetverbrauchteUrlaubstage();
+	void addVerUrlaubstage(int urlaub);
+};
+----
+#pragma once
+#include <vector>
+#include <string>
+#include "Urlaub.h"
+#include "rlutil.h"
+
+
+using namespace std;
+
+const int URLAUBSTAGE = 30;
+const int URLAUBSTAGE_AB50 = 32;
+
+class Employee {
+private:
+	int id;
+	int vacation;
+	string fullname;
+	string birth;
+	vector<Urlaub> modelUrlaub;
+public:
+	Employee(int id);
+	void addUrlaub(int vacation);
+
+	
+	void clearID();
+	void changeID(int i);
+	void insert();
+	
+
+	void tableHeader();
+
+	void display(vector<Employee> &ModelEmp,int line = 3);
+	void displayOne(vector<Employee> &ModelEmp, int id, int line=3);
+
+	int getRestUrlaub(vector<Employee> &ModelEmp, int empID);
+	void insertUrlaub(vector<Employee> &ModelEmp, int empID, int urlaub);
+	int getEmpID();
+	void setEmpID(int id);
+	void setFullNameandBirth(string fullname, string birth);
+	//Routine für die Überprüfung ob das 50zigste Lebensjahr erreicht ist!
+	bool proofBirth(string birth);
+	//Suchfunktion
+	int sucheFullname(vector<Employee> &ModelEmp, string fullname);
+	
+	string convertToUppcase(string &fullname);
+};
+
+
+----
+#include "Urlaub.h"
+#include <vector>
+#include <string>
+#include "rlutil.h"
+
+
+//Zusätliche Klasse für die Urlaubstage
+//Kann jetzt beliebig erweitert werden diese Klasse wird nach Prinzip
+//der Gang of four in der Employee instanziert Erbauerprinzip!
+//Somit hat der User da nicht viel am Hut damit!
+Urlaub::Urlaub(int id, int verbrauchteUrlaub)
+{
+	this->id = id;
+	this->verbrauchteUrlaubstage = verbrauchteUrlaub;
+}
+
+int Urlaub::GetverbrauchteUrlaubstage()
+{
+	return this->verbrauchteUrlaubstage;
+}
+
+void Urlaub::addVerUrlaubstage(int urlaub)
+{
+	this->verbrauchteUrlaubstage  += urlaub;
+}
+-------------------------------------------------
+#include <iostream>  
+#include <conio.h>   
+#include "Employee.h"
+#include <vector>
+#include <string>
+#include "rlutil.h"
+#include <time.h>
+#include <sstream>
+#include <ctype.h>
+#include <cstring>
+#include <cstdio>
+
+using namespace std;
+
+
+Employee::Employee(int id){
+	 this->id = id;
+
+	 Urlaub url(id, 0);
+	 modelUrlaub.insert(modelUrlaub.end(), url);
+	
+}
+
+string Employee::convertToUppcase(string &fullname){
+	for(unsigned int i=0; i<fullname.length(); i++){
+		fullname[i] = toupper(fullname[i]);
+	}
+
+	return fullname;
+}
+
+
+
+int Employee::sucheFullname(vector<Employee> &ModelEmp, string fullname){
+	int idx=0;
+	string searchName=fullname;
+	string modelSuche="";
+	
+	try
+	{
+		for (unsigned int i = 0; i < ModelEmp.size(); i++)
+		{
+			modelSuche = ModelEmp[i].fullname;
+			modelSuche = convertToUppcase(modelSuche);
+			idx = modelSuche.find(convertToUppcase(searchName));
+		
+			if (idx >= 0){
+				return ModelEmp[i].getEmpID();
+			}
+		 
+		}
+		
+	}
+	catch (const std::exception&)
+	{
+		cout << "Fehler passiert in Funktion SucheFullname\n";
+	}
+
+	return 0;
+}
+
+bool Employee::proofBirth(string birth){
+	int uFunf=50;
+	int idx=0;
+	int jahr=0;
+	string _birth=birth;
+	string extractYear="";
+
+	try{
+	
+		idx = _birth.rfind(".");
+		extractYear =_birth.substr(idx+1,99999);
+
+		time_t Zeitstempel;
+		tm *nun;
+		Zeitstempel = time(0);
+		if (localtime != NULL){
+			nun = localtime(&Zeitstempel);
+			
+			istringstream inStream(extractYear);
+			inStream >> jahr;
+			
+			jahr = nun->tm_year+1900-jahr;
+			
+			if ( jahr >= uFunf){
+				return true;
+			}else return false;
+		}
+	}catch(const std::exception&){
+		cout << "Fehler passiert in proofBirth Funktion: \n";
+		return false;
+	}
+	return false;
+}
+
+int Employee::getEmpID(){
+	return id;
+}
+
+void Employee::setEmpID(int id){
+	this->id = id;
+}
+
+void Employee::changeID(int i){
+	this->id=i;
+}
+
+void Employee::clearID(){
+	id=0;
+}
+
+void Employee::setFullNameandBirth(string fullname, string birth){
+	this->fullname = fullname;
+	this->birth = birth;
+}
+
+void Employee::addUrlaub(int vacation){
+	this->modelUrlaub[0].addVerUrlaubstage(vacation);
+}
+
+
+void Employee::insert()
+{
+	cout << "Fullname: \n"; cin.seekg(0, ios::end);
+	cin.clear();
+	getline(cin,fullname);
+
+
+	cout << "Birthday: \n"; cin.seekg(0, ios::end);
+	cin.clear();
+	getline(cin, birth);
+}
+
+void Employee::tableHeader()
+{
+	gotoxy(1, 1);
+	cout << "ID";
+	gotoxy(10, 1);
+	cout << "Full Name";
+	gotoxy(30, 1);
+	cout << "Birthday";
+	gotoxy(50, 1);
+	cout << "Vacation";
+
+	for (int i = 0; i < 80; i++) {
+		gotoxy(i, 2);
+		cout << "-";
+	}
+
+}
+
+void Employee::displayOne(vector<Employee> &ModelEmp, int id, int line)
+{
+	long temp = 0;
+	cout.setf(ios::fixed | ios::showpoint);
+	cout.precision(2);
+	
+	try
+	{
+			
+		gotoxy(1, line + id);
+		cout << ModelEmp[id].id;
+		gotoxy(10, line + id);
+		cout << ModelEmp[id].fullname;
+		gotoxy(30, line + id);
+		cout << ModelEmp[id].birth;
+		gotoxy(50, line + id);
+
+
+		if (proofBirth(ModelEmp[id].birth)==true){
+			cout << (URLAUBSTAGE_AB50 - (ModelEmp[id].modelUrlaub[0].GetverbrauchteUrlaubstage())) << endl;
+		}else{
+			cout << (URLAUBSTAGE - (ModelEmp[id].modelUrlaub[0].GetverbrauchteUrlaubstage())) << endl;
+		}
+	
+	}
+	catch (const std::exception&)
+	{
+		cout << "Fehler passiert Funktion displayOne\n";
+	}
+
+
+}
+
+void Employee::display(vector<Employee> &ModelEmp, int line)
+{
+	long temp = 0;
+	cout.setf(ios::fixed | ios::showpoint);
+	cout.precision(2);
+
+	try
+	{
+		for (unsigned int i = 0; i < ModelEmp.size(); i++)
+		{
+			gotoxy(1, line + i);
+			cout << ModelEmp[i].getEmpID();
+			gotoxy(10, line + i);
+			cout << ModelEmp[i].fullname;
+			gotoxy(30, line + i);
+			cout << ModelEmp[i].birth;
+			gotoxy(50, line + i);
+
+
+		
+			if (proofBirth(ModelEmp[i].birth)==true){
+				cout << (URLAUBSTAGE_AB50 - (ModelEmp[i].modelUrlaub[0].GetverbrauchteUrlaubstage())) << endl;
+			}else{
+				cout << (URLAUBSTAGE - (ModelEmp[i].modelUrlaub[0].GetverbrauchteUrlaubstage())) << endl;
+			}
+
+		}
+
+		
+	}
+	catch (const std::exception&)
+	{
+		cout << "Fehler passiert in Funktion Display\n";
+	}
+	
+
+}
+
+int Employee::getRestUrlaub(vector<Employee> &ModelEmp, int empID)
+{
+	try
+	{
+		return ModelEmp[empID].modelUrlaub[0].GetverbrauchteUrlaubstage();
+		
+	}
+	catch (const std::exception&)
+	{
+		cout << "Fehler passiert in Funktion getRestUrlaub";
+	}
+	return 0;
+}
+
+void Employee::insertUrlaub(vector<Employee> &ModelEmp, int empID, int urlaub)
+{
+	try
+	{
+		ModelEmp[empID].modelUrlaub[0].addVerUrlaubstage(urlaub);
+	}
+	catch (const std::exception&)
+	{
+		cout << "Fehler passiert in Funktion insertUrlaub\n";
+	}
+	
+}
+----------------------
+/*
+Author: Toni Mikitsch
+Aufgabe: WS19/20: ESA2 Zweite Einsendeaufgabe 
+(Urlaubsverwaltung)
+ESA2 (Leistungsnachweis) zum vhb-Kurs "C++ Teil1"
+Datum: 20.11.2019
+Erstelldatum 19.11.2019
+Änderungsdatum: 20.11.2019
+Name-Datei: esa2_urlaub.cpp
+Version: 1.0
+*/
+
+#include <iostream> 
+#include <conio.h>   
+#include "Employee.h"
+#include <vector>
+#include <string>
+#include "rlutil.h"
+#include <algorithm>    
+#include <string>
+
+
+using namespace std;
+
+//Model
+vector<Employee> ModelEmp;
+vector<Employee> tempModelEmp;
+
+
+//Sortierroutine für mein Model
+void sortEmployee(){
+	
+	if(ModelEmp.size()>0){
+		tempModelEmp.clear();
+		for(unsigned int i=0; i < ModelEmp.size();i++){
+			ModelEmp[i].changeID(i+1);
+			tempModelEmp.insert(tempModelEmp.begin(),ModelEmp[i]);
+		}
+	}
+	
+}
+
+int main(){
+	Employee *emp;
+	
+	unsigned int  id = 0, urlaub = 0;
+	string fullname = "";
+	string birth;
+	string suchname="";
+
+	do{
+
+		
+
+		system("cls");
+		gotoxy(29, 2);  cout << "=====UrlaubsverwaltungTHD=====";
+		gotoxy(29, 3);  cout << "1. Einfuegen                   ";
+		gotoxy(29, 4);  cout << "2. Editieren/Updaten          ";
+		gotoxy(29, 5);  cout << "3. Loeschen                    ";
+		gotoxy(29, 6);  cout << "4. Suchen                     ";
+		gotoxy(29, 7);  cout << "5. Urlaubserfassung           ";
+		gotoxy(29, 8);  cout << "6. Anzeigen                   ";
+		gotoxy(29, 9);  cout << "7. THD                        ";
+		gotoxy(29, 10); cout << "8. Quit                       ";
+		gotoxy(29, 11); cout << "==============================";
+
+		char menu;
+	repeat:
+		gotoxy(29, 13);
+		cout << "Ihre Auswahl: ";
+		menu = getch();
+		
+		switch (menu){
+			
+		
+			case '1':
+				emp = new Employee(ModelEmp.size()+1);
+				system("cls");
+				emp->insert();
+				ModelEmp.insert(ModelEmp.end(), *emp);
+				system("cls");
+				ModelEmp[0].tableHeader();
+				ModelEmp[0].display(ModelEmp);
+				
+				system("pause");
+				delete emp;
+				break;
+			case '2':
+				system("cls");
+				if (!ModelEmp.empty()){
+					ModelEmp[0].tableHeader();
+					ModelEmp[0].display(ModelEmp);
+					cout << "Welche ID moechte Sie aendern?: \n"; cin >> id;
+					system("cls");
+					ModelEmp[0].tableHeader();
+					ModelEmp[0].displayOne(ModelEmp,id-1);
+					cout << "Fullname: \n"; cin.seekg(0, ios::end);
+					cin.clear();
+					getline(cin,fullname);
+					cout << "Birthday: \n"; cin.seekg(0, ios::end);
+					cin.clear();
+					getline(cin, birth);
+					ModelEmp[id-1].setFullNameandBirth(fullname, birth);
+					system("cls");
+					ModelEmp[id-1].tableHeader();
+					ModelEmp[id-1].displayOne(ModelEmp,id-1);
+				}
+				system("pause");
+				break;
+			case '3':
+				
+				system("cls");
+				if (!ModelEmp.empty()){
+					ModelEmp[0].tableHeader();
+					ModelEmp[0].display(ModelEmp);
+					cout << "Welche ID moechte Sie entfernen?: \n"; cin >> id;
+					ModelEmp.erase(ModelEmp.begin() + (id-1));
+					sortEmployee();
+					system("cls");
+					if (!ModelEmp.empty()){
+						ModelEmp[0].tableHeader();
+						ModelEmp[0].display(ModelEmp);
+					}
+				}else if (ModelEmp.empty()){
+					ModelEmp.clear();
+					system("cls");
+				}
+							
+				system("pause");
+				
+				break;
+			case '4':
+				system("cls");
+				if (!ModelEmp.empty()){
+					ModelEmp[0].tableHeader();
+					ModelEmp[0].display(ModelEmp);
+					cout << "Bitte geben Sie den Suchnamen ein: \n"; cin >> suchname;
+					
+					id = ModelEmp[0].sucheFullname(ModelEmp, suchname);
+					system("cls");
+					if(id != 0){
+						ModelEmp[id-1].tableHeader();
+						ModelEmp[id-1].displayOne(ModelEmp,id-1);
+					}
+				}
+				system("pause");
+				break;
+			case '5':
+				system("cls");
+				if (!ModelEmp.empty()){
+					ModelEmp[0].tableHeader();
+					ModelEmp[0].display(ModelEmp);
+					cout << "Bitte geben Sie die ID ein: \n"; cin >> id;
+					cout << "Bitte geben Sie die Anzahl Urlaubstage ein: \n"; cin >> urlaub;
+					
+
+					ModelEmp[(id-1)].addUrlaub(urlaub);
+					system("cls");
+					
+					ModelEmp[(id-1)].tableHeader();
+					ModelEmp[(id-1)].display(ModelEmp);
+					
+				}
+				system("pause");
+
+				break;
+			case '6':
+				system("cls");
+				if (!ModelEmp.empty()){
+					ModelEmp[0].tableHeader();
+					ModelEmp[0].display(ModelEmp);
+				}
+				system("pause");
+				break;
+			case '7':
+				cout << "THD Angewandte Informatik www.thg.de\n";
+				system("pause");
+				break;
+			case '8':
+				cout << "Auswahl 8";
+				exit(0);
+
+			default:
+				gotoxy(29, 15);  cout << "Falsche Eingabe";
+				getch(); gotoxy(29, 15); system("cls");
+				goto repeat;
+		}
+
+	}while(true);
+	system("pause");
+	return 0;
+}
+----------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
